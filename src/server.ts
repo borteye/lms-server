@@ -1,6 +1,8 @@
 import express, { Express } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import authRoutes from "./app/auth/routes";
+import schoolRoutes from "./app/school/routes";
 
 dotenv.config();
 
@@ -20,6 +22,10 @@ app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+app.use("/api/auth", authRoutes);
+app.use("/api/school", schoolRoutes);
+
 
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);
