@@ -26,6 +26,9 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/school", schoolRoutes);
 
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
 
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);
