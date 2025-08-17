@@ -9,7 +9,6 @@ import { generateAccessToken, ResponseStructure } from "../../utils/utils";
 
 const signIn = async (req: Request, res: Response) => {
   const { email, password } = req.body;
-  console.log("email, password", email, password);
 
   try {
     await signInSchema.validate({ email, password }).catch((err) => {
