@@ -9,25 +9,25 @@ import { generateAccessToken, ResponseStructure } from "../../utils/utils";
 
 const signIn = async (req: Request, res: Response) => {
   const { email, password } = req.body;
+  console.log("email, password", email, password);
 
   try {
     await signInSchema.validate({ email, password }).catch((err) => {
-      if (err)
-        res.status(400).json(
-          ResponseStructure({
-            message: "Invalid request data.",
-            code: 400,
-            subCode: "VALIDATION_ERROR",
-            errors: [
-              { errorMessage: "Invalid request data.", field: "unknown" },
-            ],
-          })
-        );
+      if (err) console.log("Invalid request data.", err);
+      res.status(400).json(
+        ResponseStructure({
+          message: "Invalid request data.",
+          code: 400,
+          subCode: "VALIDATION_ERROR",
+          errors: [{ errorMessage: "Invalid request data.", field: "unknown" }],
+        })
+      );
       return;
     });
 
     const emailExist = await pool.query(queries.CHECK_EMAIL_EXISTS, [email]);
     if (!emailExist.rows[0]) {
+      console.log("Invalid email or password");
       res.status(404).json(
         ResponseStructure({
           message: "Invalid email or password",
@@ -55,6 +55,7 @@ const signIn = async (req: Request, res: Response) => {
       user.password as string
     );
     if (!isPasswordValid) {
+      console.log("Invalid email or password");
       res.status(401).json(
         ResponseStructure({
           message: "Invalid email or password",
@@ -87,6 +88,7 @@ const signIn = async (req: Request, res: Response) => {
     };
     const accessToken = generateAccessToken(accessTokenPayload);
     if (!accessToken) {
+      console.log("Token generation failed");
       res.status(500).json(
         ResponseStructure({
           message: "Token generation failed",
@@ -117,6 +119,7 @@ const signIn = async (req: Request, res: Response) => {
     );
     return;
   } catch (error) {
+    console.log("Internal server error", error);
     res.status(500).json(
       ResponseStructure({
         message: "Internal server error",
