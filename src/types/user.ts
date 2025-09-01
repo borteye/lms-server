@@ -1,7 +1,9 @@
 export type role = "admin" | "teacher" | "student";
 export interface IUser {
-  id: number;
-  name: string;
+  id?: number;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
   email: string;
   role: role;
   school_id?: number;
