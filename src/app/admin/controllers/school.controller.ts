@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import { EnhancedRequest } from "../../../types/shared";
 import {
   academicStructureSchema,
@@ -235,18 +235,6 @@ const createAcademicStructure = async (req: Request, res: Response) => {
     currentTerm,
   } = req.body;
 
-  console.log(
-    schoolId,
-    levelSystem,
-    departments,
-    subjects,
-    academicYearStart,
-    academicYearEnd,
-    termSystem,
-    terms,
-    currentTerm
-  );
-
   try {
     await academicStructureSchema
       .safeParseAsync({
@@ -277,15 +265,6 @@ const createAcademicStructure = async (req: Request, res: Response) => {
         }
       });
 
-    console.log(
-      Number(schoolId),
-      academicYearStart,
-      academicYearEnd,
-      termSystem,
-      currentTerm
-    );
-
-    console.log("start academic structure");
     const academicStructureResult = await pool.query(
       schoolQueries.CREATE_ACADEMIC_STRUCTURE,
       [
@@ -311,9 +290,8 @@ const createAcademicStructure = async (req: Request, res: Response) => {
         })
       );
     }
-    console.log("end academic structure");
+
     const academicStructureId = academicStructureResult.rows[0].id;
-    console.log("academicStructureId", academicStructureId);
     try {
       if (departments && departments.length > 0) {
         for (const dept of departments) {
@@ -325,7 +303,6 @@ const createAcademicStructure = async (req: Request, res: Response) => {
       }
       if (subjects && subjects.length > 0) {
         for (const subject of subjects) {
-          console.log("subjects", subjects);
           await pool.query(schoolQueries.CREATE_SUBJECTS, [
             Number(schoolId),
             subject,
@@ -334,7 +311,6 @@ const createAcademicStructure = async (req: Request, res: Response) => {
       }
       if (terms && terms.length > 0) {
         for (const term of terms) {
-          console.log("subjects", terms);
           if (term.name && term.startDate && term.endDate) {
             await pool.query(schoolQueries.CREATE_TERMS, [
               academicStructureId,
@@ -388,7 +364,6 @@ const createAcademicStructure = async (req: Request, res: Response) => {
 const createGradingSystem = async (req: Request, res: Response) => {
   const { schoolId, gradingSystem, gradeScale, passingGrade, timezone } =
     req.body;
-  console.log(schoolId, gradingSystem, gradeScale, passingGrade, timezone);
   try {
     await configurationSchema
       .safeParseAsync({
@@ -417,7 +392,7 @@ const createGradingSystem = async (req: Request, res: Response) => {
 
     const gradingSystemResult = await pool.query(
       schoolQueries.CREATE_GRADING_SYSTEM,
-      [schoolId, gradingSystem, passingGrade]
+      [Number(schoolId), gradingSystem, passingGrade]
     );
     if (gradingSystemResult.rows.length === 0) {
       return res.status(500).json(
@@ -434,8 +409,8 @@ const createGradingSystem = async (req: Request, res: Response) => {
         })
       );
     }
-    const gradingSystemId = gradingSystemResult.rows[0].id;
 
+    const gradingSystemId = gradingSystemResult.rows[0].id;
     try {
       if (gradeScale && gradeScale.length > 0) {
         for (const grade of gradeScale) {
@@ -464,7 +439,6 @@ const createGradingSystem = async (req: Request, res: Response) => {
         })
       );
     }
-
     return res.status(200).json(
       ResponseStructure({
         message: "Grading system created successfully.",

@@ -10,7 +10,6 @@ export function validateData(data: any[]): {
   validData: ValidatedRow[];
   invalidData: InvalidRow[];
 } {
-  console.log("data", data);
   const validData: ValidatedRow[] = [];
   const invalidData: InvalidRow[] = [];
 

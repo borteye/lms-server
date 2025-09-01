@@ -12,7 +12,6 @@ const CREATE_DEPARTMENT =
   "INSERT INTO departments(school_id, name) VALUES ($1, $2) ON CONFLICT (school_id, name) DO NOTHING RETURNING id";
 const CREATE_SUBJECTS =
   "INSERT INTO subjects(school_id, name) VALUES ($1, $2) ON CONFLICT (school_id, name) DO NOTHING RETURNING id";
-
 const CREATE_GRADING_SYSTEM =
   "INSERT INTO grading_systems(school_id, grading_type, minimum_passing_grade) VALUES ($1, $2, $3) ON CONFLICT (school_id) DO UPDATE SET grading_type = EXCLUDED.grading_type, minimum_passing_grade = EXCLUDED.minimum_passing_grade RETURNING id";
 const CREATE_GRADE_SCALES =
