@@ -1,39 +1,32 @@
 import cloudinary from "../config/cloudinary";
 import fs from "fs";
-import { NextFunction, Request, Response } from "express";
-import { ResponseStructure } from "../utils/utils";
 
-export const uploadToCloudinary = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export async function uploadImageToCloudinary(
+  filePath: string,
+  folder: string = "lms/logos"
+) {
   try {
-    const filePath = req?.file?.path;
-
-    if (!filePath) {
-      return next();
-    }
-
     const result = await cloudinary.uploader.upload(filePath, {
-      folder: "lms",
+      folder,
     });
 
-    if (filePath) {
+    // Clean up the local file
+    if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
 
-    res.locals.secure_url = result.secure_url;
-    next();
-  } catch (err) {
-    res.status(500).json(
-      ResponseStructure({
-        code: 500,
-        message: "Something went wrong",
-        subCode: "SERVER_ERROR",
-        data: null,
-        errors: [{ errorMessage: "Something went wrong", field: "unknown" }],
-      })
+    return {
+      secure_url: result.secure_url,
+      public_id: result.public_id,
+      url: result.url,
+    };
+  } catch (error) {
+    // Clean up file on error
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+    throw new Error(
+      `Failed to upload image to Cloudinary: ${error instanceof Error ? error.message : "Unknown error"}`
     );
   }
-};
+}

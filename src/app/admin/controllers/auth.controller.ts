@@ -8,6 +8,7 @@ import {
 import { adminRegisterSchema } from "../../../schema/auth-schema";
 import pool from "../../../config/db";
 import * as commonQueries from "../../common/queries";
+import * as userQueries from "../queries/user.queries";
 import {
   adminOnboardingMailOptions,
   transporter,
@@ -72,7 +73,7 @@ const register = async (req: Request, res: Response) => {
       );
     }
 
-    const result = await pool.query(commonQueries.CREATE_USER, [
+    const result = await pool.query(userQueries.CREATE_ADMIN, [
       firstName,
       lastName,
       phoneNumber,
