@@ -1,60 +1,85 @@
-import * as yup from "yup";
+import z from "zod";
 
 // Phone number validation function
 const validatePhoneNumber = (value: string) => {
   return /^\+?[0-9]{7,15}$/.test(value);
 };
 
-const gradeSchema = yup.object().shape({
-  min: yup.string().required("Min is required").min(1, "Min is required"),
-  max: yup.string().required("Max is required").min(1, "Max is required"),
-  grade: yup.string().required("Grade is required").min(1, "Grade is required"),
-  remark: yup
+export const schoolProfileSchema = z.object({
+  schoolName: z
     .string()
-    .required("Remark is required")
-    .min(1, "Remark is required"),
+    .min(1, "School name is required")
+    .min(2, "School name must be at least 2 characters"),
+  institutionType: z.string().min(1, "Institution type is required"),
+  address: z.string().min(1, "Address is required"),
+  city: z.string().min(1, "City is required"),
+  state: z.string().min(1, "State/Province is required"),
+  zipCode: z.string().min(1, "ZIP/Postal code is required"),
+  country: z.string().min(1, "Country is required"),
+  contactEmail: z
+    .string()
+    .min(1, "Contact email is required")
+    .email("Please enter a valid email address"),
+  phoneNumber: z
+    .string()
+    .min(1, "Phone number is required")
+    .min(10, "Please enter a valid phone number"),
+  website: z.string().optional(),
+  socialMedia: z.string().optional(),
+  logo: z.any().optional(),
 });
 
-export const createSchoolSchema = yup.object().shape({
-  schoolName: yup
-    .string()
-    .min(2, "School name must be at least 2 characters")
-    .required("School name is required"),
-  schoolEmail: yup
-    .string()
-    .email("Invalid email format")
-    .required("Email is required"),
-  schoolPhoneNumber: yup
-    .string()
-    .required("Phone number is required")
-    .test("is-valid-phone", "Invalid phone number format", validatePhoneNumber),
+const termObject = z
+  .object({
+    name: z.string().optional(),
+    startDate: z.string().optional(),
+    endDate: z.string().optional(),
+  })
+  .refine(
+    (term) => {
+      const values = [term.startDate, term.endDate];
+      const filledCount = values.filter(Boolean).length;
+      return filledCount === 0 || filledCount === values.length;
+    },
+    {
+      message: "If you fill one field, all fields are required",
+      path: ["startDate"],
+    }
+  );
 
-  // From formTwoSchema
-  schoolType: yup
-    .string()
-    .oneOf(["junior high", "senior high"], "Invalid school type")
-    .required("School type is required"),
-  country: yup.string().required("Country is required"),
-  timezone: yup.string().required("Timezone is required"),
+export const academicStructureSchema = z.object({
+  levelSystem: z.string().min(1, "Academic level system is required"),
+  departments: z.array(z.string()).optional(),
+  subjects: z.array(z.string()).min(1, "At least one subject is required"),
+  academicYearStart: z.string().min(1, "Academic year start date is required"),
+  academicYearEnd: z.string().min(1, "Academic year end date is required"),
+  termSystem: z.string().min(1, "Term system is required"),
+  terms: z.array(termObject).optional(),
+  currentTerm: z.string().min(1, "Current term is required"),
+});
 
-  // From formThreeSchema
-  academicYear: yup
-    .string()
-    .required("Academic year is required")
-    .matches(/^\d{4}\/\d{4}$/, "Academic year must be in the format YYYY/YYYY"),
-  academicStartDate: yup.string().required("Start date is required"),
-  academicEndDate: yup.string().required("End date is required"),
-  numberOfTermsOrSemesters: yup
-    .string()
-    .required("Number of terms/semesters must be at least 1"),
-  currentTermOrSemester: yup.string().required("Current term is required"),
+const gradeObject = z
+  .object({
+    grade: z.string().optional(),
+    minPercentage: z.string().optional(),
+    maxPercentage: z.string().optional(),
+    remark: z.string().optional(),
+  })
+  .refine(
+    (grade) => {
+      const values = [grade.minPercentage, grade.maxPercentage, grade.remark];
+      const filledCount = values.filter(Boolean).length;
+      return filledCount === 0 || filledCount === values.length;
+    },
+    {
+      message: "If you fill one field, all fields are required",
+      path: ["minPercentage"],
+    }
+  );
 
-  // Array of grading objects
-  gradingSystem: yup.array().of(gradeSchema).optional(),
-
-  // Cloudinary image URL
-  schoolLogo: yup
-    .string()
-    .url("Invalid logo URL")
-    .required("School logo is required"),
+export const configurationSchema = z.object({
+  gradingSystem: z.string().min(1, "Grading system is required"),
+  gradeScale: z.array(gradeObject).optional(),
+  passingGrade: z.string().min(1, "Passing grade is required"),
+  timezone: z.string().min(1, "Timezone is required"),
 });
