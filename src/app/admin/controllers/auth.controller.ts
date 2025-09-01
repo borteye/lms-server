@@ -53,7 +53,6 @@ const register = async (req: Request, res: Response) => {
           );
         }
       });
-    console.log("start email check");
     const emailExist = await pool.query(commonQueries.CHECK_EMAIL_EXISTS, [
       email,
     ]);
@@ -72,9 +71,7 @@ const register = async (req: Request, res: Response) => {
         })
       );
     }
-    console.log("end email check");
 
-    console.log("start admin creation");
     const result = await pool.query(userQueries.CREATE_ADMIN, [
       firstName,
       lastName,
@@ -97,7 +94,6 @@ const register = async (req: Request, res: Response) => {
         })
       );
     }
-    console.log("end admin creation");
     const userId = result.rows[0].id;
 
     const hashedPassword = await hashValue(password);
