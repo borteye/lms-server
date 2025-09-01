@@ -1,8 +1,8 @@
 import express, { Express } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import authRoutes from "./app/auth/routes";
-import schoolRoutes from "./app/school/routes";
+import adminRoutes from "./app/admin/routes";
+require("./app/admin/schedules/user.schedular");
 
 dotenv.config();
 
@@ -23,8 +23,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-app.use("/api/auth", authRoutes);
-app.use("/api/school", schoolRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
