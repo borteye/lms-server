@@ -488,6 +488,26 @@ const successOnboarding = async (req: EnhancedRequest, res: Response) => {
       );
     }
 
+    const authResult = await pool.query(commonQueries.CREATE_AUTH, [
+      user?.id,
+      user?.hashedPassword,
+    ]);
+    if (!authResult) {
+      return res.status(500).json(
+        ResponseStructure({
+          message: "Error onboarding user.",
+          code: 500,
+          subCode: "CREATION_FAILED",
+          errors: [
+            {
+              field: "server",
+              errorMessage: "Error onboarding user.",
+            },
+          ],
+        })
+      );
+    }
+
     const data = {
       id: user.id,
       role: user.role,
@@ -668,9 +688,255 @@ const createStudents = async (
   }
 };
 
+const getAllTeachersInSchool = async (req: Request, res: Response) => {
+  const user = res.locals.user;
+  const result = await pool.query(schoolQueries.GET_ALL_TEACHERS_IN_SCHOOL, [
+    user?.schoolId,
+  ]);
+  if (result.rows.length === 0) {
+    return res.status(400).json(
+      ResponseStructure({
+        message: "No teacher found.",
+        code: 400,
+        subCode: "NOT_FOUND",
+        errors: [
+          {
+            field: "unknown",
+            errorMessage: "No teacher found.",
+          },
+        ],
+      })
+    );
+  }
+  return res.status(200).json(
+    ResponseStructure({
+      message: "Success.",
+      code: 200,
+      subCode: "SUCCESS",
+      data: result.rows,
+    })
+  );
+};
+
+const getSchoolStatisticsForDepartment = async (
+  req: Request,
+  res: Response
+) => {
+  const user = res.locals.user;
+  try {
+    const schoolStat = await pool.query(
+      schoolQueries.SCHOOL_STAT_FOR_DEPARTMENT,
+      [user?.schoolId]
+    );
+
+    return res.status(200).json(
+      ResponseStructure({
+        message: "Success.",
+        code: 200,
+        subCode: "SUCCESS",
+        data: [
+          {
+            id: "department",
+            label: "Total Departments",
+            value: Number(schoolStat.rows[0].total_departments),
+          },
+          {
+            id: "students",
+            label: "Total Students",
+            value: Number(schoolStat.rows[0].total_students),
+          },
+          {
+            id: "teachers",
+            label: "Total Teachers",
+            value: Number(schoolStat.rows[0].total_teachers),
+          },
+          {
+            id: "classes",
+            label: "Total Classes/Streams",
+            value: Number(schoolStat.rows[0].total_classes),
+          },
+        ],
+      })
+    );
+  } catch (error) {
+    return ResponseStructure({
+      message: "Error getting stats.",
+      code: 500,
+      subCode: "CREATION_FAILED",
+      errors: [
+        {
+          errorMessage: "Error getting stats.",
+          field: "server",
+        },
+      ],
+    });
+  }
+};
+
+const getSchoolStatisticsForDashboard = async (req: Request, res: Response) => {
+  const user = res.locals.user;
+  try {
+    const schoolStat = await pool.query(
+      schoolQueries.SCHOOL_STAT_FOR_DASHBOARD,
+      [user?.schoolId]
+    );
+
+    return res.status(200).json(
+      ResponseStructure({
+        message: "Success.",
+        code: 200,
+        subCode: "SUCCESS",
+        data: [
+          {
+            id: "students",
+            label: "Total Students",
+            value: Number(schoolStat.rows[0].total_students),
+          },
+          {
+            id: "teachers",
+            label: "Total Teachers",
+            value: Number(schoolStat.rows[0].total_teachers),
+          },
+          {
+            id: "department",
+            label: "Departments",
+            value: Number(schoolStat.rows[0].total_departments),
+          },
+          {
+            id: "classes",
+            label: "Classes/Streams",
+            value: Number(schoolStat.rows[0].total_classes),
+          },
+          {
+            id: "subjects",
+            label: "Total Subjects",
+            value: Number(schoolStat.rows[0].total_subjects),
+          },
+        ],
+      })
+    );
+  } catch (error) {
+    return ResponseStructure({
+      message: "Error getting stats.",
+      code: 500,
+      subCode: "CREATION_FAILED",
+      errors: [
+        {
+          errorMessage: "Error getting stats.",
+          field: "server",
+        },
+      ],
+    });
+  }
+};
+
+const getSchoolStatisticsForClasses = async (req: Request, res: Response) => {
+  const { departmentId } = req.query;
+  const user = res.locals.user;
+  try {
+    const result = await pool.query(schoolQueries.SCHOOL_STAT_FOR_CLASSES, [
+      user?.schoolId,
+      departmentId ? Number(departmentId) : null,
+    ]);
+    return res.status(200).json(
+      ResponseStructure({
+        message: "Success",
+        code: 200,
+        subCode: "SUCCESS",
+        data: [
+          {
+            id: "classes",
+            label: "Total Classes/Streams",
+            value: Number(result.rows[0].total_classes),
+          },
+          {
+            id: "students",
+            label: "Total Students",
+            value: Number(result.rows[0].total_students),
+          },
+          {
+            id: "average_class_size",
+            label: "Average Class Size",
+            value: Number(result.rows[0].average_class_size),
+          },
+          {
+            id: "subjects",
+            label: "Total Subjects",
+            value: Number(result.rows[0].total_subjects),
+          },
+        ],
+      })
+    );
+  } catch (error) {
+    console.error("Error fetching stats:", error);
+    return res.status(500).json(
+      ResponseStructure({
+        message: "Internal server error",
+        code: 500,
+        subCode: "ERROR",
+      })
+    );
+  }
+};
+
+const getSchoolDepartments = async (req: Request, res: Response) => {
+  const user = res.locals.user;
+  try {
+    console.log("start");
+    const schoolDepartments = await pool.query(
+      schoolQueries.DEPARTMENTS_IN_SCHOOL,
+      [user?.schoolId]
+    );
+    if (schoolDepartments.rows.length === 0) {
+      return res.status(400).json(
+        ResponseStructure({
+          message: "No department found.",
+          code: 400,
+          subCode: "NOT_FOUND",
+          errors: [
+            {
+              field: "unknown",
+              errorMessage: "No department found.",
+            },
+          ],
+        })
+      );
+    }
+    console.log("error");
+
+    console.log("continue");
+    return res.status(200).json(
+      ResponseStructure({
+        message: "Success.",
+        code: 200,
+        subCode: "SUCCESS",
+        data: schoolDepartments.rows,
+      })
+    );
+    console.log("end");
+  } catch (error) {
+    return ResponseStructure({
+      message: "Error getting departments.",
+      code: 500,
+      subCode: "DEPARTMENT ERROR",
+      errors: [
+        {
+          errorMessage: "Error getting department.",
+          field: "server",
+        },
+      ],
+    });
+  }
+};
+
 export {
   createSchool,
   createAcademicStructure,
   createGradingSystem,
   successOnboarding,
+  getAllTeachersInSchool,
+  getSchoolStatisticsForDepartment,
+  getSchoolDepartments,
+  getSchoolStatisticsForDashboard,
+  getSchoolStatisticsForClasses,
 };
