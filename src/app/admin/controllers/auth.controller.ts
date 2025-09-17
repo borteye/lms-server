@@ -113,26 +113,6 @@ const register = async (req: Request, res: Response) => {
       );
     }
 
-    const authResult = await pool.query(commonQueries.CREATE_AUTH, [
-      userId,
-      hashedPassword,
-    ]);
-    if (!authResult) {
-      return res.status(500).json(
-        ResponseStructure({
-          message: "Error creating user",
-          code: 500,
-          subCode: "INTERNAL_ERROR",
-          errors: [
-            {
-              field: "server",
-              errorMessage: "Something went wrong. Please try again later.",
-            },
-          ],
-        })
-      );
-    }
-
     const data = {
       firstName,
       lastName,
@@ -140,6 +120,7 @@ const register = async (req: Request, res: Response) => {
       phoneNumber,
       role: "admin",
       id: userId,
+      password: hashedPassword
     };
     const emailVerificationToken = generateEmailVerificationToken(data);
     if (!emailVerificationToken) {
