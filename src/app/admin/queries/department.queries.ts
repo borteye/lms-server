@@ -1,6 +1,6 @@
 const GET_ALL_DEPARTMENTS = "SELECT * FROM departments WHERE school_id = $1";
 const CHECK_DEPARTMENT_NAME_EXISTS =
-  "SELECT 1 FROM departments WHERE LOWER(name) = LOWER($1) LIMIT 1";
+  "SELECT 1 FROM departments WHERE LOWER(name) = LOWER($1) AND school_id = $2 LIMIT 1";
 const CHECK_DEPARTMENT_EXIST_BY_ID =
   "SELECT 1 FROM departments WHERE id = $1 LIMIT 1";
 const CHECK_HOD_EXISTS =

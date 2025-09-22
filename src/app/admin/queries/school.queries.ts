@@ -30,7 +30,7 @@ const SCHOOL_STAT_FOR_DEPARTMENT =
   "SELECT (SELECT COUNT(DISTINCT id) FROM departments WHERE school_id = $1) AS total_departments, (SELECT COUNT(DISTINCT id) FROM users WHERE role = 'student' AND school_id = $1) AS total_students, (SELECT COUNT(DISTINCT id) FROM users WHERE role = 'teacher' AND school_id = $1) AS total_teachers, (SELECT COUNT(*) FROM (SELECT c.id AS unit_id FROM classes c JOIN departments d ON d.id = c.department_id WHERE d.school_id = $1 AND NOT EXISTS (SELECT 1 FROM streams st WHERE st.class_id = c.id) UNION ALL SELECT st.id AS unit_id FROM streams st JOIN classes c ON st.class_id = c.id JOIN departments d ON d.id = c.department_id WHERE d.school_id = $1) AS class_units) AS total_classes";
 const SCHOOL_STAT_FOR_DASHBOARD =
   "SELECT (SELECT COUNT(DISTINCT id) FROM departments WHERE school_id = $1) AS total_departments, (SELECT COUNT(DISTINCT id) FROM subjects WHERE school_id = $1) AS total_subjects, (SELECT COUNT(DISTINCT id) FROM users WHERE role = 'student' AND school_id = $1) AS total_students, (SELECT COUNT(DISTINCT id) FROM users WHERE role = 'teacher' AND school_id = $1) AS total_teachers, (SELECT COUNT(*) FROM (SELECT c.id AS unit_id FROM classes c JOIN departments d ON d.id = c.department_id WHERE d.school_id = $1 AND NOT EXISTS (SELECT 1 FROM streams st WHERE st.class_id = c.id) UNION ALL SELECT st.id AS unit_id FROM streams st JOIN classes c ON st.class_id = c.id JOIN departments d ON d.id = c.department_id WHERE d.school_id = $1) AS class_units) AS total_classes";
-const DEPARTMENTS_IN_SCHOOL = `-- Optimized version using CTEs to avoid cartesian product
+const DEPARTMENTS_IN_SCHOOL = `
 WITH department_classes AS (
     SELECT 
         d.id as department_id,
