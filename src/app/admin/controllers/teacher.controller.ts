@@ -1,34 +1,15 @@
 import { Request, Response } from "express";
-import { EnhancedRequest } from "../../../types/shared";
 import {
-  academicStructureSchema,
-  configurationSchema,
-  schoolProfileSchema,
-} from "../../../schema/school";
-import {
-  generateAccessToken,
   generatePassword,
-  ResponseStructure,
+  ResponseStructure
 } from "../../../utils/utils";
-import * as schoolQueries from "../queries/school.queries";
-import * as userQueries from "../queries/user.queries";
 import * as commonQueries from "../../common/queries";
 import pool from "../../../config/db";
-import {
-  addFailedInsertionToInvalidData,
-  createAndUploadInvalidDataExcel,
-  validateData,
-} from "../../../helpers/validateExcelData";
 import { hashValue } from "../../../helpers/bcrypt";
 import {
-  studentCreationMailOptions,
   teacherCreationMailOptions,
-  transporter,
+  transporter
 } from "../../../helpers/mailer";
-import {
-  createNotification,
-  createSingleReceipt,
-} from "../../../helpers/notification";
 import { teacherSingleRegisterSchema } from "../../../schema/common";
 
 const createTeacher = async (req: Request, res: Response) => {
@@ -128,18 +109,15 @@ const createTeacher = async (req: Request, res: Response) => {
       department || null,
     ]);
 
-    console.log("sending mail");
-
     try {
       const result = await transporter.sendMail(
         teacherCreationMailOptions({
           email: contactEmail,
           name: first_name,
-          link: "http://localhost:3002/sign-in",
+          link: `${process.env.TEACHER_BASE_URL}/sign-in`,
           password,
         })
       );
-      console.log("sending mail 1");
 
       if (result?.accepted?.length > 0) {
         return res.status(200).json(

@@ -26,7 +26,6 @@ const register = async (req: Request, res: Response) => {
   } = req.body;
 
   try {
-    console.log("Email: ", email, "Password: ", password);
     await adminRegisterSchema
       .safeParseAsync({
         firstName,
@@ -38,7 +37,6 @@ const register = async (req: Request, res: Response) => {
       })
       .catch((err) => {
         if (err) {
-          console.log(err);
           return res.status(400).json(
             ResponseStructure({
               message: "Invalid request data.",
@@ -55,7 +53,6 @@ const register = async (req: Request, res: Response) => {
         }
       });
 
-    console.log("start email check");
     const emailExist = await pool.query(commonQueries.CHECK_EMAIL_EXISTS, [
       email,
     ]);
@@ -74,9 +71,7 @@ const register = async (req: Request, res: Response) => {
         })
       );
     }
-    console.log("end email check");
 
-    console.log("start admin creation");
     const result = await pool.query(userQueries.CREATE_ADMIN, [
       firstName,
       lastName,
@@ -100,7 +95,6 @@ const register = async (req: Request, res: Response) => {
       );
     }
     const userId = result.rows[0].id;
-    console.log("error creating admin creation");
 
     const hashedPassword = await hashValue(password);
     if (!hashedPassword) {
@@ -118,8 +112,6 @@ const register = async (req: Request, res: Response) => {
         })
       );
     }
-
-    console.log("start generating email verification token");
 
     const data = {
       firstName,
@@ -146,9 +138,8 @@ const register = async (req: Request, res: Response) => {
         })
       );
     }
-    console.log("end generating email verification token");
 
-    const link = `${process.env.BASE_URL}/onboarding?token=${emailVerificationToken}`;
+    const link = `${process.env.ADMIN_BASE_URL}/onboarding?token=${emailVerificationToken}`;
     try {
       const result = await transporter.sendMail(
         adminOnboardingMailOptions({

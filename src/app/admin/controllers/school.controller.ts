@@ -624,7 +624,7 @@ const createStudents = async (
             studentCreationMailOptions({
               email: student.contactEmail,
               name: student.firstName,
-              link: "http://localhost:3001/sign-in",
+              link: `${process.env.STUDENT_BASE_URL}/sign-in`,
               password,
             })
           );
