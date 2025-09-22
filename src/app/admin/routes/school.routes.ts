@@ -1,5 +1,8 @@
 import express from "express";
 import * as schoolController from "../controllers/school.controller";
+import * as teacherController from "../controllers/teacher.controller";
+import * as studentController from "../controllers/student.controller";
+import * as coursesController from "../controllers/courses.controller";
 import upload from "../../../middlewares/multer";
 import { handleFileUpload } from "../../../helpers/handle-file-upload";
 import {
@@ -33,6 +36,34 @@ router.post(
   upload.single("excelFile"),
   handleFileUpload,
   schoolController.successOnboarding
+);
+
+router.post(
+  "/teacher/create",
+  authenticateAccessToken,
+  authorizeRole("admin"),
+  teacherController.createTeacher
+);
+
+router.post(
+  "/student/create",
+  authenticateAccessToken,
+  authorizeRole("admin"),
+  studentController.createStudent
+);
+
+router.post(
+  "/subject/create",
+  authenticateAccessToken,
+  authorizeRole("admin"),
+  coursesController.createSubject
+);
+
+router.post(
+  "/course/create",
+  authenticateAccessToken,
+  authorizeRole("admin"),
+  coursesController.createCourse
 );
 
 router.get(
