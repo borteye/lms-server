@@ -1,6 +1,9 @@
 import express, { Express } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import adminRoutes from "./app/admin/routes";
+import commonRoutes from "./app/common/routes";
+require("./app/admin/schedules/user.schedular");
 
 dotenv.config();
 
@@ -20,6 +23,13 @@ app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+app.use("/api/admin", adminRoutes);
+app.use("/api", commonRoutes);
+
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
 
 app.listen(port, () => {
   console.log(`[server]: Server is running at http://localhost:${port}`);
