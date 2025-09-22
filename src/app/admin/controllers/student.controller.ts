@@ -26,7 +26,6 @@ const createStudent = async (req: Request, res: Response) => {
         contactEmail,
         phoneNumber,
         class_id,
-
         stream,
       })
       .catch((err) => {

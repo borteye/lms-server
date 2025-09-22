@@ -20,7 +20,7 @@ export const studentSingleRegisterSchema = z.object({
     .string()
     .min(1, "Phone number is required")
     .min(10, "Please enter a valid phone number"),
-  class_id: z.string().optional(),
+  class_id: z.string().min(1, "Class is required"),
   stream: z.string().optional(),
 });
 
