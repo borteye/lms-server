@@ -490,7 +490,7 @@ const successOnboarding = async (req: EnhancedRequest, res: Response) => {
 
     const authResult = await pool.query(commonQueries.CREATE_AUTH, [
       user?.id,
-      user?.hashedPassword,
+      user?.password,
     ]);
     if (!authResult) {
       return res.status(500).json(
@@ -542,8 +542,8 @@ const successOnboarding = async (req: EnhancedRequest, res: Response) => {
             role: user.role,
             schoolId,
             email: user.email,
-            firstName: user.firstName,
-            lastName: user.lastName,
+            first_name: user.firstName,
+            last_name: user.lastName,
           },
         },
         subCode: "CREATION_SUCCESS",
@@ -579,15 +579,11 @@ const createStudents = async (
   schoolId: number,
   userId: number
 ) => {
-  console.log("Starting background student creation...");
-
   if (req.uploadResult && req.uploadResult.type === "excel") {
     const students = req.uploadResult.data;
-    console.log(`Processing ${students.length} students`);
 
     // Validate the data
     const { validData, invalidData } = validateData(students);
-    console.log(`Valid: ${validData.length}, Invalid: ${invalidData.length}`);
 
     let successfulInsertions = 0;
     let failedInsertions = 0;
@@ -616,6 +612,12 @@ const createStudents = async (
             hashedPassword,
           ]);
         }
+
+        await pool.query(commonQueries.CREATE_INTO_STUDENT_TABLE, [
+          studentId,
+          null,
+          null,
+        ]);
 
         try {
           const result = await transporter.sendMail(
@@ -679,7 +681,6 @@ const createStudents = async (
           await createSingleReceipt(notificationId, userId);
           return;
         }
-        console.log("invalidDataFileUrl", invalidDataFileUrl);
       } catch (uploadError) {
         console.error("Failed to upload invalid data file:", uploadError);
       }
@@ -882,7 +883,6 @@ const getSchoolStatisticsForClasses = async (req: Request, res: Response) => {
 const getSchoolDepartments = async (req: Request, res: Response) => {
   const user = res.locals.user;
   try {
-    console.log("start");
     const schoolDepartments = await pool.query(
       schoolQueries.DEPARTMENTS_IN_SCHOOL,
       [user?.schoolId]
@@ -902,9 +902,7 @@ const getSchoolDepartments = async (req: Request, res: Response) => {
         })
       );
     }
-    console.log("error");
 
-    console.log("continue");
     return res.status(200).json(
       ResponseStructure({
         message: "Success.",
@@ -913,7 +911,6 @@ const getSchoolDepartments = async (req: Request, res: Response) => {
         data: schoolDepartments.rows,
       })
     );
-    console.log("end");
   } catch (error) {
     return ResponseStructure({
       message: "Error getting departments.",

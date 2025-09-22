@@ -12,7 +12,7 @@ const createDepartment = async (req: Request, res: Response) => {
   try {
     const nameExits = await pool.query(
       departmentQueries.CHECK_DEPARTMENT_NAME_EXISTS,
-      [name]
+      [name, user?.schoolId]
     );
     if (nameExits.rows.length > 0) {
       return res.status(400).json(

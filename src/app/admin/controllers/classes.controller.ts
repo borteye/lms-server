@@ -15,6 +15,7 @@ const createClassroom = async (req: Request, res: Response) => {
         name,
         Number(level),
         classTeacher,
+        Number(department),
       ]);
       if (nameExits.rows.length > 0) {
         return res.status(400).json(
@@ -34,7 +35,7 @@ const createClassroom = async (req: Request, res: Response) => {
     } else if (!classTeacher) {
       const nameExits = await pool.query(
         classQueries.CHECK_CLASS_NAME_EXIST_2,
-        [name, Number(level)]
+        [name, Number(level), Number(department)]
       );
       if (nameExits.rows.length > 0) {
         return res.status(400).json(
