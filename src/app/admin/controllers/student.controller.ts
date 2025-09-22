@@ -1,37 +1,16 @@
 import { Request, Response } from "express";
-import { EnhancedRequest } from "../../../types/shared";
 import {
-  academicStructureSchema,
-  configurationSchema,
-  schoolProfileSchema,
-} from "../../../schema/school";
-import {
-  generateAccessToken,
   generatePassword,
-  ResponseStructure,
+  ResponseStructure
 } from "../../../utils/utils";
-import * as schoolQueries from "../queries/school.queries";
-import * as userQueries from "../queries/user.queries";
 import * as commonQueries from "../../common/queries";
 import pool from "../../../config/db";
-import {
-  addFailedInsertionToInvalidData,
-  createAndUploadInvalidDataExcel,
-  validateData,
-} from "../../../helpers/validateExcelData";
 import { hashValue } from "../../../helpers/bcrypt";
 import {
-  studentCreationMailOptions,
-  teacherCreationMailOptions,
-  transporter,
+  studentCreationMailOptions, transporter
 } from "../../../helpers/mailer";
 import {
-  createNotification,
-  createSingleReceipt,
-} from "../../../helpers/notification";
-import {
-  studentSingleRegisterSchema,
-  teacherSingleRegisterSchema,
+  studentSingleRegisterSchema
 } from "../../../schema/common";
 
 const createStudent = async (req: Request, res: Response) => {
@@ -129,7 +108,7 @@ const createStudent = async (req: Request, res: Response) => {
         studentCreationMailOptions({
           email: contactEmail,
           name: first_name,
-          link: "http://localhost:3001/sign-in",
+          link: `${process.env.STUDENT_BASE_URL}/sign-in`,
           password,
         })
       );
