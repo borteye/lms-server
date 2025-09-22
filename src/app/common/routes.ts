@@ -7,5 +7,11 @@ const router = express.Router();
 router.post("/auth/sign-in", controller.signIn);
 router.get("/class-levels", authenticateAccessToken, controller.getClassLevels);
 router.get("/departments", authenticateAccessToken, controller.getDepartments);
+router.get("/subjects", authenticateAccessToken, controller.getSubjects);
+router.get(
+  "/classes",
+  authenticateAccessToken,
+  controller.getClassesWithStreams
+);
 
 export default router;

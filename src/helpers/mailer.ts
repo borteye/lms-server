@@ -5,6 +5,7 @@ import {
   adminOnboardingMail,
   adminUnOnboardingDeleteMail,
   studentCreationMail,
+  teacherCreationMail,
 } from "./mails-messages";
 
 const currentYear = new Date().getFullYear().toString();
@@ -73,9 +74,30 @@ const studentCreationMailOptions = ({
   return options;
 };
 
+const teacherCreationMailOptions = ({
+  name,
+  email,
+  password,
+  link,
+}: {
+  name: string;
+  email: string;
+  password: string;
+  link: string;
+}) => {
+  const options = {
+    from: "TenaClass",
+    to: email,
+    subject: "Your Account Has Been Created - TenaClass",
+    html: teacherCreationMail(name, email, password, link, currentYear),
+  };
+  return options;
+};
+
 export {
   transporter,
   adminOnboardingMailOptions,
   adminUnOnboardingDeleteMailOptions,
   studentCreationMailOptions,
+  teacherCreationMailOptions,
 };

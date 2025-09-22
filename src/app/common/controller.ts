@@ -220,4 +220,101 @@ const getDepartments = async (req: Request, res: Response) => {
   }
 };
 
-export { signIn, getClassLevels, getDepartments };
+const getSubjects = async (req: Request, res: Response) => {
+  const user = res.locals.user;
+  try {
+    const subjects = await pool.query(commonQueries.GET_SUBJECTS, [
+      user?.schoolId,
+    ]);
+    if (!subjects.rows.length) {
+      return res.status(404).json(
+        ResponseStructure({
+          message: "No subjects found",
+          code: 404,
+          subCode: "NOT_FOUND",
+          errors: [
+            {
+              field: "subjects",
+              errorMessage: "No subjects found",
+            },
+          ],
+        })
+      );
+    }
+    return res.status(200).json(
+      ResponseStructure({
+        message: "Success.",
+        code: 200,
+        subCode: "SUCCESS",
+        data: subjects.rows,
+      })
+    );
+  } catch (error) {
+    return res.status(500).json(
+      ResponseStructure({
+        message: "Internal server error",
+        code: 500,
+        subCode: "INTERNAL_ERROR",
+        errors: [
+          {
+            field: "server",
+            errorMessage: "Something went wrong. Please try again later.",
+          },
+        ],
+      })
+    );
+  }
+};
+
+const getClassesWithStreams = async (req: Request, res: Response) => {
+  const user = res.locals.user;
+
+  try {
+    const result = await pool.query(commonQueries.CLASSES_WITH_STREAMS, [
+      user?.schoolId,
+    ]);
+    if (result.rows.length === 0) {
+      return res.status(400).json(
+        ResponseStructure({
+          message: "No class found.",
+          code: 400,
+          subCode: "NOT_FOUND",
+          errors: [
+            {
+              field: "unknown",
+              errorMessage: "No class found.",
+            },
+          ],
+        })
+      );
+    }
+    return res.status(200).json(
+      ResponseStructure({
+        message: "Success",
+        code: 200,
+        subCode: "SUCCESS",
+        data: result.rows,
+      })
+    );
+  } catch (error) {
+    return ResponseStructure({
+      message: "Internal server error",
+      code: 500,
+      subCode: "INTERNAL_ERROR",
+      errors: [
+        {
+          field: "server",
+          errorMessage: "Something went wrong. Please try again later.",
+        },
+      ],
+    });
+  }
+};
+
+export {
+  signIn,
+  getClassLevels,
+  getDepartments,
+  getSubjects,
+  getClassesWithStreams,
+};
