@@ -1,5 +1,7 @@
 import { isExcelFile, isImageFile, ResponseStructure } from "../utils/utils";
 import fs from "fs-extra";
+import path from "path";
+import os from "os";
 import { NextFunction, Response } from "express";
 import { uploadImageToCloudinary } from "./upload-to-cloudinary";
 import { processExcel } from "./process-excel";
@@ -11,20 +13,17 @@ export const handleFileUpload = async (
   next: NextFunction
 ) => {
   try {
-    const filePath = req?.file?.path;
-
-    // If no file is uploaded, continue to next middleware
-    if (!filePath || !req.file) {
+    // If no file is uploaded, continue
+    if (!req.file) {
       return next();
     }
 
-    const { mimetype } = req.file;
+    const { mimetype, buffer, originalname } = req.file;
 
-    // Handle image upload (logo)
+    // Handle image upload (direct to Cloudinary)
     if (isImageFile(mimetype)) {
-      const imageResult = await uploadImageToCloudinary(filePath);
+      const imageResult = await uploadImageToCloudinary(buffer, "lms/logos");
 
-      // Store the result for use in the main route handler
       req.uploadResult = {
         type: "image",
         data: imageResult,
@@ -33,11 +32,19 @@ export const handleFileUpload = async (
       return next();
     }
 
-    // Handle Excel upload (students data)
+    // Handle Excel upload (write buffer to temp file, then process)
     if (isExcelFile(mimetype)) {
-      const excelData = await processExcel(filePath);
+      const tempDir = os.tmpdir(); // system temp directory (safe on Render)
+      const tempFilePath = path.join(tempDir, Date.now() + "-" + originalname);
 
-      // Store the processed Excel data
+      // Write buffer to temp file
+      await fs.writeFile(tempFilePath, buffer);
+
+      const excelData = await processExcel(tempFilePath);
+
+      // Clean up temp file after processing
+      await fs.remove(tempFilePath);
+
       req.uploadResult = {
         type: "excel",
         data: excelData,
@@ -46,10 +53,6 @@ export const handleFileUpload = async (
       return next();
     }
 
-    // If we reach here, the file type wasn't handled
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
     throw new Error("Unsupported file type");
   } catch (error) {
     console.error("File upload error:", error);

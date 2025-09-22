@@ -1,18 +1,11 @@
 // middleware/upload.ts
 import multer from "multer";
-import path from "path";
 import { excelMimeTypes, imageMimeTypes } from "../utils/utils";
 
 const allowedMimeTypes = [...imageMimeTypes, ...excelMimeTypes];
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Make sure this directory exists
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
+// Use memoryStorage instead of diskStorage
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
@@ -20,7 +13,6 @@ const upload = multer({
     if (allowedMimeTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      // Enhanced error message to include Excel formats
       const allowedExtensions = [
         ".png",
         ".jpg",
@@ -36,13 +28,12 @@ const upload = multer({
         ".xltm",
         ".xltx",
       ];
-      cb(null, false);
       return cb(
         new Error(`Only ${allowedExtensions.join(", ")} formats allowed!`)
       );
     }
   },
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit (Excel files can be larger than images)
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
 });
 
 export default upload;
