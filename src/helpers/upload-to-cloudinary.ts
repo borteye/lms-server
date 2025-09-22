@@ -1,32 +1,36 @@
 import cloudinary from "../config/cloudinary";
-import fs from "fs";
+import streamifier from "streamifier";
 
 export async function uploadImageToCloudinary(
-  filePath: string,
+  fileBuffer: Buffer,
   folder: string = "lms/logos"
 ) {
-  try {
-    const result = await cloudinary.uploader.upload(filePath, {
-      folder,
-    });
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder },
+      (error, result) => {
+        if (error) {
+          return reject(
+            new Error(
+              `Failed to upload image to Cloudinary: ${
+                error instanceof Error ? error.message : "Unknown error"
+              }`
+            )
+          );
+        }
+        if (!result) {
+          return reject(new Error("No result returned from Cloudinary"));
+        }
 
-    // Clean up the local file
-    // if (fs.existsSync(filePath)) {
-    //   fs.unlinkSync(filePath);
-    // }
-
-    return {
-      secure_url: result.secure_url,
-      public_id: result.public_id,
-      url: result.url,
-    };
-  } catch (error) {
-    // Clean up file on error
-    // if (fs.existsSync(filePath)) {
-    //   fs.unlinkSync(filePath);
-    // }
-    throw new Error(
-      `Failed to upload image to Cloudinary: ${error instanceof Error ? error.message : "Unknown error"}`
+        resolve({
+          secure_url: result.secure_url,
+          public_id: result.public_id,
+          url: result.url,
+        });
+      }
     );
-  }
+
+    // Convert buffer into a readable stream and pipe into Cloudinary
+    streamifier.createReadStream(fileBuffer).pipe(uploadStream);
+  });
 }
