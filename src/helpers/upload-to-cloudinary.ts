@@ -11,9 +11,9 @@ export async function uploadImageToCloudinary(
     });
 
     // Clean up the local file
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
+    // if (fs.existsSync(filePath)) {
+    //   fs.unlinkSync(filePath);
+    // }
 
     return {
       secure_url: result.secure_url,
@@ -22,9 +22,9 @@ export async function uploadImageToCloudinary(
     };
   } catch (error) {
     // Clean up file on error
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
+    // if (fs.existsSync(filePath)) {
+    //   fs.unlinkSync(filePath);
+    // }
     throw new Error(
       `Failed to upload image to Cloudinary: ${error instanceof Error ? error.message : "Unknown error"}`
     );
