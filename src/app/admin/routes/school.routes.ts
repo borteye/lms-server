@@ -101,4 +101,11 @@ router.get(
   schoolController.getSchoolStatisticsForClasses
 );
 
+router.get(
+  "/notifications",
+  authenticateAccessToken,
+  authorizeRole("admin"),
+  schoolController.getNotifications
+);
+
 export default router;

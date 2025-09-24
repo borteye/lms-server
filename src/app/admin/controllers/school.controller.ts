@@ -508,6 +508,25 @@ const successOnboarding = async (req: EnhancedRequest, res: Response) => {
       );
     }
 
+    const schoolDetails = await pool.query(commonQueries.GET_SCHOOL_DETAILS, [
+      Number(schoolId),
+    ]);
+    if (!schoolDetails.rows.length) {
+      return res.status(400).json(
+        ResponseStructure({
+          message: "Invalid email or password.",
+          code: 400,
+          subCode: "VALIDATION_ERROR",
+          errors: [
+            {
+              errorMessage: "Invalid email or password.",
+              field: "password",
+            },
+          ],
+        })
+      );
+    }
+
     const data = {
       id: user.id,
       role: user.role,
@@ -541,6 +560,8 @@ const successOnboarding = async (req: EnhancedRequest, res: Response) => {
             id: user.id,
             role: user.role,
             schoolId,
+            schoolName: schoolDetails.rows[0].school_name,
+            schoolLogo: schoolDetails.rows[0].logo,
             email: user.email,
             first_name: user.firstName,
             last_name: user.lastName,
@@ -926,6 +947,36 @@ const getSchoolDepartments = async (req: Request, res: Response) => {
   }
 };
 
+const getNotifications = async (req: Request, res: Response) => {
+  const user = res.locals.user;
+  try {
+    const notifications = await pool.query(
+      schoolQueries.GET_ADMIN_NOTIFICATIONS,
+      [user?.schoolId, user?.id]
+    );
+    return res.status(200).json(
+      ResponseStructure({
+        message: "Success.",
+        code: 200,
+        subCode: "SUCCESS",
+        data: notifications.rows,
+      })
+    );
+  } catch (error) {
+    return ResponseStructure({
+      message: "Error getting departments.",
+      code: 500,
+      subCode: "DEPARTMENT ERROR",
+      errors: [
+        {
+          errorMessage: "Error getting department.",
+          field: "server",
+        },
+      ],
+    });
+  }
+};
+
 export {
   createSchool,
   createAcademicStructure,
@@ -936,4 +987,5 @@ export {
   getSchoolDepartments,
   getSchoolStatisticsForDashboard,
   getSchoolStatisticsForClasses,
+  getNotifications,
 };

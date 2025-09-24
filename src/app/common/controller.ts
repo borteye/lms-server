@@ -7,7 +7,6 @@ import { compareValue } from "../../helpers/bcrypt";
 
 const signIn = async (req: Request, res: Response) => {
   const { email, password } = req.body;
-  console.log("Email: ", email, "Password: ", password);
 
   try {
     await signInSchema.safeParseAsync({ email, password }).catch((err) => {
@@ -109,6 +108,25 @@ const signIn = async (req: Request, res: Response) => {
       );
     }
 
+    const schoolDetails = await pool.query(commonQueries.GET_SCHOOL_DETAILS, [
+      data.schoolId,
+    ]);
+    if (!schoolDetails.rows.length) {
+      return res.status(400).json(
+        ResponseStructure({
+          message: "Invalid email or password.",
+          code: 400,
+          subCode: "VALIDATION_ERROR",
+          errors: [
+            {
+              errorMessage: "Invalid email or password.",
+              field: "password",
+            },
+          ],
+        })
+      );
+    }
+
     const accessToken = generateAccessToken(data);
     if (!accessToken) {
       return res.status(500).json(
@@ -125,6 +143,7 @@ const signIn = async (req: Request, res: Response) => {
         })
       );
     }
+
     return res.status(200).json(
       ResponseStructure({
         message: "Sign in successfully.",
@@ -135,6 +154,8 @@ const signIn = async (req: Request, res: Response) => {
             id: data.id,
             role: data.role,
             schoolId: data.schoolId,
+            schoolName: schoolDetails.rows[0].school_name,
+            schoolLogo: schoolDetails.rows[0].logo,
             email: user.rows[0].email,
             firstName: user.rows[0].first_name,
             lastName: user.rows[0].last_name,
