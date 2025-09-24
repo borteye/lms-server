@@ -154,6 +154,28 @@ LEFT JOIN class_sizes cs ON cs.unit_id IN (c.id, (SELECT id FROM streams WHERE c
 WHERE d.school_id = $1
     AND ($2::int IS NULL OR d.id = $2)`;
 
+const GET_ADMIN_NOTIFICATIONS = `
+    SELECT 
+        n.id,
+        n.school_id,
+        n.user_id,
+        n.role_target,
+        n.title,
+        n.message,
+        n.type,
+        n.file_url,
+        n.metadata,
+        n.created_at,
+        n.expires_at,
+        COALESCE(nr.is_read, false) as is_read,
+        nr.read_at
+    FROM notifications n
+    LEFT JOIN notification_receipts nr ON (n.id = nr.notification_id AND nr.user_id = $2)
+    WHERE n.school_id = $1
+    ORDER BY n.created_at DESC
+    LIMIT 50;
+`;
+
 export {
   CREATE_SCHOOL,
   UPDATE_SCHOOL,
@@ -173,4 +195,5 @@ export {
   SCHOOL_STAT_FOR_DASHBOARD,
   SCHOOL_STAT_FOR_CLASSES,
   DEPARTMENTS_IN_SCHOOL,
+  GET_ADMIN_NOTIFICATIONS,
 };
