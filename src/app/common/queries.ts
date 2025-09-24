@@ -65,6 +65,7 @@ const CLASSES_WITH_STREAMS = `
     
     ORDER BY class_level_name, class_name, stream_name;
 `;
+const GET_SCHOOL_DETAILS = "SELECT * FROM schools WHERE id = $1";
 
 export {
   CHECK_EMAIL_EXISTS,
@@ -82,4 +83,5 @@ export {
   CREATE_INTO_TEACHER_TABLE,
   GET_SUBJECTS,
   CLASSES_WITH_STREAMS,
+  GET_SCHOOL_DETAILS
 };
