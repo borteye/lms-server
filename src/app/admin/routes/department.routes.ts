@@ -6,6 +6,11 @@ import { authorizeRole } from "../../../middlewares/authorizeRole";
 const router = express.Router();
 
 router.get("/departments", authenticateAccessToken, controller.getDepartments);
+router.get(
+  "/department/:id",
+  authenticateAccessToken,
+  controller.getSingleDepartment
+);
 router.post(
   "/create",
   authenticateAccessToken,
@@ -17,6 +22,13 @@ router.put(
   authenticateAccessToken,
   authorizeRole("admin"),
   controller.updateDepartment
+);
+
+router.delete(
+  "/delete/:id",
+  authenticateAccessToken,
+  authorizeRole("admin"),
+  controller.deleteDepartment
 );
 
 export default router;
