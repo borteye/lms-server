@@ -99,13 +99,14 @@ const createDepartment = async (req: Request, res: Response) => {
 const updateDepartment = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { name, headOfDepartment, departmentCode } = req.body;
+  const sanitizedHead = headOfDepartment?.trim() || null;
 
   try {
     const department = await pool.query(departmentQueries.UPDATE_DEPARTMENT, [
-      id,
+      Number(id),
       name,
-      headOfDepartment || null,
-      departmentCode || null,
+      sanitizedHead,
+      departmentCode,
     ]);
     if (!department.rows.length) {
       return res.status(500).json(
@@ -123,11 +124,59 @@ const updateDepartment = async (req: Request, res: Response) => {
       );
     }
 
-    return ResponseStructure({
-      message: "Department updated successfully.",
-      code: 200,
-      subCode: "SUCCESS",
-    });
+    return res.status(200).json(
+      ResponseStructure({
+        message: "Department updated successfully.",
+        code: 200,
+        subCode: "SUCCESS",
+      })
+    );
+  } catch (error) {
+    return res.status(500).json(
+      ResponseStructure({
+        message: "Internal server error",
+        code: 500,
+        subCode: "INTERNAL_ERROR",
+        errors: [
+          {
+            field: "server",
+            errorMessage: "Something went wrong. Please try again later.",
+          },
+        ],
+      })
+    );
+  }
+};
+
+const getDepartments = async (req: Request, res: Response) => {
+  const user = res.locals.user;
+  try {
+    const departments = await pool.query(departmentQueries.GET_DEPARTMENTS, [
+      user?.schoolId,
+    ]);
+    if (departments.rows.length === 0) {
+      return res.status(404).json(
+        ResponseStructure({
+          message: "No department found.",
+          code: 404,
+          subCode: "NOT_FOUND",
+          errors: [
+            {
+              field: "unknown",
+              errorMessage: "No department found.",
+            },
+          ],
+        })
+      );
+    }
+    return res.status(200).json(
+      ResponseStructure({
+        message: "Success.",
+        code: 200,
+        subCode: "SUCCESS",
+        data: departments.rows,
+      })
+    );
   } catch (error) {
     return ResponseStructure({
       message: "Internal server error",
@@ -143,12 +192,12 @@ const updateDepartment = async (req: Request, res: Response) => {
   }
 };
 
-const getDepartments = async (req: Request, res: Response) => {
-  const user = res.locals.user;
+const getSingleDepartment = async (req: Request, res: Response) => {
+  const { id } = req.params;
   try {
     const departments = await pool.query(
-      departmentQueries.GET_ALL_DEPARTMENTS,
-      [user?.schoolId]
+      departmentQueries.GET_SINGLE_DEPARTMENT,
+      [Number(id)]
     );
     if (departments.rows.length === 0) {
       return res.status(404).json(
@@ -188,4 +237,62 @@ const getDepartments = async (req: Request, res: Response) => {
   }
 };
 
-export { createDepartment, getDepartments, updateDepartment };
+const deleteDepartment = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(departmentQueries.DELETE_DEPARTMENT, [
+      Number(id),
+    ]);
+
+    if (result.rows.length === 0) {
+      // nothing was deleted → likely invalid id
+      return res.status(404).json(
+        ResponseStructure({
+          message: "Department not found",
+          code: 404,
+          subCode: "NOT_FOUND",
+          errors: [
+            {
+              errorMessage: "No department exists with that ID.",
+              field: "id",
+            },
+          ],
+        })
+      );
+    }
+
+    // success
+    return res.status(200).json(
+      ResponseStructure({
+        message: "Department deleted successfully",
+        code: 200,
+        subCode: "DELETION_SUCCESS",
+        data: { deletedId: result.rows[0].id },
+      })
+    );
+  } catch (error) {
+    console.error("Delete error", error);
+    return res.status(500).json(
+      ResponseStructure({
+        message: "Internal server error",
+        code: 500,
+        subCode: "INTERNAL_ERROR",
+        errors: [
+          {
+            field: "server",
+            errorMessage: "Something went wrong. Please try again later.",
+          },
+        ],
+      })
+    );
+  }
+};
+
+export {
+  createDepartment,
+  getDepartments,
+  updateDepartment,
+  getSingleDepartment,
+  deleteDepartment,
+};
